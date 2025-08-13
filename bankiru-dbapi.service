@@ -1,0 +1,14 @@
+[Unit]
+Description=bankiru-dbapi
+After=syslog.target
+After=network.target
+
+[Service]
+Type=simple
+User=evm
+WorkingDirectory=/home/evm/bankiru-dbapi
+ExecStart=/home/evm/bankiru-dbapi/.venv/bin/python /home/evm/bankiru-dbapi/logfire_auto_tracing.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
