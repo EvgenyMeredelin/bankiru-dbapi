@@ -35,11 +35,15 @@ async def api_token(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
-app = FastAPI(lifespan=lifespan, dependencies=[Depends(api_token)])
+app = FastAPI(lifespan=lifespan)
 logfire.instrument_fastapi(app, capture_headers=True)
 
 
-@app.post("/reviews", status_code=status.HTTP_201_CREATED)
+@app.post(
+    "/reviews",
+    dependencies=[Depends(api_token)],
+    status_code=status.HTTP_201_CREATED
+)
 async def post_reviews(
     reviews: list[schemas.Review], session: DBSession, client: BotoClient
 ) -> None:
@@ -79,7 +83,11 @@ async def get_reviews(
         return Response(**r.model_dump(), url=shortened_presigned_url)
 
 
-@app.delete("/reviews", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete(
+    "/reviews",
+    dependencies=[Depends(api_token)],
+    status_code=status.HTTP_204_NO_CONTENT
+)
 async def delete_reviews(
     delete_ids: list[int], session: DBSession, client: BotoClient
 ) -> None:
