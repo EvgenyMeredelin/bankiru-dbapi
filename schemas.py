@@ -1,8 +1,8 @@
 import inspect
 from datetime import date, datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
 
 import handlers
 
@@ -34,7 +34,7 @@ class Request(BaseModel):
     startDate: date_value = None
     endDate: date_value = None
     outputFormat: outputFormats = "parquet"  # type: ignore
-    generateUrl: bool = True
+    isBackup: Annotated[bool, Field(exclude=True)] = False
 
     @field_validator("startDate", "endDate", mode="before")
     @classmethod

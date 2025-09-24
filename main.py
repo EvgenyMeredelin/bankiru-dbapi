@@ -2,6 +2,7 @@ import operator
 from contextlib import asynccontextmanager
 from typing import Annotated
 
+import fastapi
 import logfire
 from aiobotocore.client import AioBaseClient
 from environs import env
@@ -19,7 +20,7 @@ from schemas import available_output_formats, Request, Response
 
 DBSession = Annotated[AsyncSession, Depends(get_async_session)]
 BotoClient = Annotated[AioBaseClient, Depends(get_async_client)]
-backup_request = Request(generateUrl=False)
+backup_request = Request(isBackup=True)
 
 
 @asynccontextmanager
@@ -56,7 +57,7 @@ async def post_reviews(
         await get_reviews(backup_request, session, client)
 
 
-@app.get("/reviews", status_code=status.HTTP_200_OK)
+@app.get("/reviews")
 async def get_reviews(
     r: Annotated[Request, Query()], session: DBSession, client: BotoClient
 ) -> Response | None:
@@ -73,11 +74,11 @@ async def get_reviews(
             return Response(**r.model_dump(), comment="No results")
 
         handler_class = available_output_formats[r.outputFormat]
-        handler = handler_class(scalars, client, r.generateUrl)
+        handler = handler_class(scalars, client, r.isBackup)
         await handler.upload_contents()
 
-        if not r.generateUrl:
-            return None  # backup request doesn't need a response
+        if r.isBackup:
+            return fastapi.Response(status_code=status.HTTP_204_NO_CONTENT)
 
         shortened_presigned_url = await handler.generate_url()
         return Response(**r.model_dump(), url=shortened_presigned_url)

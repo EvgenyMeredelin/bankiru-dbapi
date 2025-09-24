@@ -23,7 +23,7 @@ class ScalarsHandler(ABC):
         self,
         scalars: list[ScalarResult],
         botoclient: AioBaseClient,
-        make_key: bool
+        is_backup: bool
     ) -> None:
         # preserve columns order as they declared in the Review table
         # and drop the "_sa_instance_state" column
@@ -32,7 +32,7 @@ class ScalarsHandler(ABC):
             self.df = pd.DataFrame.from_records(records)[review_columns]
         with logfire.span("Set the rest of the attributes"):
             self.client = botoclient
-            self._make_key = make_key
+            self._is_backup = is_backup
             self._body = io.BytesIO()
 
     @property
@@ -52,7 +52,7 @@ class ScalarsHandler(ABC):
 
     @cached_property
     def key(self) -> str:
-        name = uuid4() if self._make_key else "bankiru_reviews_db_backup"
+        name = "bankiru_reviews_db_backup" if self._is_backup else uuid4()
         return f"{name}.{self.__class__.extension}"
 
     async def upload_contents(self) -> None:
