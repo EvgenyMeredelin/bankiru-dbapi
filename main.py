@@ -36,7 +36,15 @@ async def api_token(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN)
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    description="Banki.ru claims and negative reviews database API",
+    version="0.1.0",
+    contact={
+        "name": "Evgeny Meredelin",
+        "email": "eimeredelin@sberbank.ru"
+    }
+)
 logfire.instrument_fastapi(app, capture_headers=True)
 
 

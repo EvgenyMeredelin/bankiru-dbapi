@@ -1,7 +1,7 @@
 [project]
 name = "bankiru-dbapi"
 version = "0.1.0"
-description = "Banki.ru database API"
+description = "Banki.ru claims and negative reviews database API"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
