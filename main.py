@@ -38,7 +38,7 @@ async def api_token(
 
 app = FastAPI(
     lifespan=lifespan,
-    description="Banki.ru claims and negative reviews database API",
+    title="Banki.ru claims and negative reviews database API",
     version="0.1.0",
     contact={
         "name": "Evgeny Meredelin",
