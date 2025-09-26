@@ -10,6 +10,7 @@ from fastapi import Depends, FastAPI, HTTPException, Query, status
 from fastapi.security import APIKeyHeader
 from sqlalchemy import cast, Date, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.responses import RedirectResponse
 
 import schemas
 from botocore_client import get_async_client
@@ -46,6 +47,11 @@ app = FastAPI(
     }
 )
 logfire.instrument_fastapi(app, capture_headers=True)
+
+
+@app.get("/")
+async def redirect_from_root_to_docs():
+    return RedirectResponse(url="/docs")
 
 
 @app.post(
