@@ -15,7 +15,7 @@ from models import review_columns
 class ScalarsHandler(ABC):
     """
     A base class for a handler that converts SQLAlchemy scalars to a specific
-    output format, uploads them to an S3 bucket, and generates a pre-signed
+    output format, uploads them to S3 bucket and generates a pre-signed
     download link.
     """
 
@@ -25,6 +25,7 @@ class ScalarsHandler(ABC):
         botoclient: AioBaseClient,
         is_backup: bool
     ) -> None:
+
         # preserve columns order as they declared in the Review table
         # and drop the "_sa_instance_state" column
         with logfire.span("Make a dataframe from the scalars"):

@@ -4,6 +4,7 @@ from environs import env
 
 
 env.read_env(recurse=True)
+
 logfire.configure(token=env("LOGFIRE_TOKEN"), service_name="API")
 logfire.install_auto_tracing(
     modules=["main", "handlers"],

@@ -39,7 +39,7 @@ async def api_token(
 
 app = FastAPI(
     lifespan=lifespan,
-    title="Banki.ru claims and negative reviews database API",
+    title="Banki.ru Claims and Negative Reviews Database API",
     version="0.1.0",
     contact={
         "name": "Evgeny Meredelin",
@@ -61,7 +61,7 @@ async def redirect_from_root_to_docs():
 )
 async def post_reviews(
     reviews: list[schemas.Review], session: DBSession, client: BotoClient
-) -> None:
+):
     with logfire.span("Create new entries"):
         reviews = [Review(**review.model_dump()) for review in reviews]
     with logfire.span("Add entries and commit"):
@@ -74,7 +74,7 @@ async def post_reviews(
 @app.get("/reviews")
 async def get_reviews(
     r: Annotated[Request, Query()], session: DBSession, client: BotoClient
-) -> Response | None:
+):
     with logfire.span("Select entries"):
         dates = cast(Review.datePublished, Date)
         clauses = [(r.startDate, operator.ge), (r.endDate, operator.le)]
@@ -105,7 +105,7 @@ async def get_reviews(
 )
 async def delete_reviews(
     delete_ids: list[int], session: DBSession, client: BotoClient
-) -> None:
+):
     with logfire.span("Delete entries and commit"):
         statement = delete(Review).where(Review.id.in_(delete_ids))
         await session.execute(statement)
