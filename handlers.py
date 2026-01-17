@@ -1,3 +1,5 @@
+import collections
+import itertools
 import io
 from abc import (
     ABC,
@@ -21,6 +23,11 @@ from pydantic_ai.exceptions import (
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 from sqlalchemy.engine import ScalarResult
+from styleframe import (
+    StyleFrame,
+    Styler,
+    utils
+)
 
 from models import review_columns
 
@@ -164,6 +171,50 @@ class XlsxMaker(ScalarsHandler):
 
     @cached_property
     def body(self) -> io.BytesIO:
-        with pd.ExcelWriter(self._body) as writer:
-            self.df.to_excel(writer, index=False)
+        number = itertools.count(1)
+        enumerator = collections.defaultdict(lambda: next(number))
+        review_n = self.df.url.apply(lambda url: enumerator[url])
+        odd_row_mask = (review_n % 2).astype(bool)
+
+        base_style = Styler(
+            font="Consolas",
+            font_size=10,
+            horizontal_alignment=utils.horizontal_alignments.left,
+            wrap_text=False,
+            shrink_to_fit=False,
+            date_time_format="YYYY-MM-DD HH:MM:SS"
+        )
+
+        base_params = vars(base_style)
+        sf = StyleFrame(self.df, base_style)
+
+        headers_update = {
+            "bg_color": "#57534D",
+            "font_color": "#FFFFFF"
+        }
+        headers_params = base_params | headers_update
+        sf.apply_headers_style(Styler(**headers_params))
+
+        even_row_update = {"bg_color": "#FAD0E5"}
+        even_row_params = base_params | even_row_update
+
+        sf.apply_style_by_indexes(
+            indexes_to_style=sf[odd_row_mask],
+            styler_obj=Styler(bg_color="#D0FAE5"),
+            complement_style=Styler(**even_row_params),
+            overwrite_default_style=False
+        )
+
+        best_fit_columns = self.df.columns.to_list()
+        best_fit_columns.remove("reviewBody")
+        StyleFrame.A_FACTOR, StyleFrame.P_FACTOR = 3, 1.1
+
+        with StyleFrame.ExcelWriter(self._body) as writer:
+            sf.to_excel(
+                excel_writer=writer,
+                columns_and_rows_to_freeze="A2",
+                best_fit=best_fit_columns,
+                index=False
+            )
+
         return self._body

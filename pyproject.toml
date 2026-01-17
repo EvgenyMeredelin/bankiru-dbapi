@@ -16,4 +16,5 @@ dependencies = [
     "pyarrow>=21.0.0",
     "pydantic-ai>=1.14.1",
     "sqlalchemy>=2.0.43",
+    "styleframe>=4.2",
 ]
