@@ -5,6 +5,7 @@ from abc import (
     ABC,
     abstractmethod
 )
+from dataclasses import dataclass
 from functools import cached_property
 from uuid import uuid4
 
@@ -30,6 +31,36 @@ from styleframe import (
 )
 
 from models import review_columns
+
+
+system_prompt = """Ты модель-суммаризатор.
+Выдели в сообщениях:
+1. Наиболее острые темы и причины жалоб;
+2. Наиболее частые темы и причины жалоб.
+Будь краток и точен. Обобщай с опорой на факты.
+"""
+
+
+@dataclass
+class HTTPErrorHandler:
+    """
+    `pydantic_ai.exceptions.ModelHTTPError` handler.
+    """
+
+    message: str
+    reason: str
+    solution: str
+    reference: str | None = None
+
+    def match(self, error: ModelHTTPError) -> bool:
+        return self.message in error.body["message"]
+
+    @property
+    def summary(self) -> str:
+        parts = [self.reason, self.solution]
+        if self.reference:
+            parts += [f"Reference: {self.reference}"]
+        return ".<br>".join(parts)
 
 
 class ScalarsHandler(ABC):
@@ -105,22 +136,29 @@ class ScalarsHandler(ABC):
     ) -> str:
         with logfire.span("Summarize reviews"):
             model = OpenAIChatModel(
-                model_name=cloud_model or env("DEFAULT_MODEL_NAME"),
+                model_name=cloud_model or env("DEFAULT_CLOUD_MODEL"),
                 provider=OpenAIProvider(api_key=cloud_api_key)
             )
             limits = UsageLimits(
                 output_tokens_limit=env.int("OUTPUT_TOKENS_LIMIT")
             )
             reviews = "\n\n".join(self.df.reviewBody.unique())
-            agent = Agent(model, system_prompt=env("SYSTEM_PROMPT"))
+            agent = Agent(model, system_prompt=system_prompt)
 
             try:
                 run = await agent.run(reviews, usage_limits=limits)
                 return run.output
-            except ModelHTTPError:
-                return "Invalid Cloud API key"
+
+            except ModelHTTPError as error:
+                from errors import http_errors
+                for e in http_errors:
+                    handler = HTTPErrorHandler(**e)
+                    if handler.match(error):
+                        return handler.summary
+                return error.body["message"]
+
             except UsageLimitExceeded as error:
-                return str(error)
+                return error.message
 
 
 class CSVMaker(ScalarsHandler):

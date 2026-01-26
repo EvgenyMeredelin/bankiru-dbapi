@@ -56,10 +56,10 @@ class Request(BaseModel):
     def handle_dates(cls, value: date_value) -> date_value:
         if value is None:
             return None
-        if isinstance(value, str):  # for a request
+        if isinstance(value, str):  # request
             value = value.replace("-", "")
             return datetime.strptime(value, "%Y%m%d").date()
-        if isinstance(value, date):  # for a response
+        if isinstance(value, date):  # response
             return value.strftime("%Y-%m-%d")
 
 
