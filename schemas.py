@@ -48,7 +48,6 @@ class Request(BaseModel):
     product: list[str] | None = None
     outputFormat: outputFormats = "parquet"  # type: ignore
     cloudModel: str | None = None
-    cloudApiKey: Annotated[str | None, Field(exclude=True)] = None
     isBackup: Annotated[bool, Field(exclude=True)] = False
 
     @field_validator("startDate", "endDate", mode="before")

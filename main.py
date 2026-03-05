@@ -137,12 +137,7 @@ async def get_reviews(
             return fastapi.Response(status_code=status.HTTP_204_NO_CONTENT)
 
         url = await handler.generate_url()
-
-        if r.cloudApiKey:
-            cloud_args = (r.cloudModel, r.cloudApiKey)
-            comment = await handler.summarize_reviews(*cloud_args)
-        else:
-            comment = "Provide your Cloud API key to summarize reviews"
+        comment = await handler.summarize_reviews(r.cloudModel)
 
         return Response(
             **r.model_dump(),
