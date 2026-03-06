@@ -131,10 +131,10 @@ class ScalarsHandler(ABC):
             )
             return url
 
-    async def summarize_reviews(self, cloud_model: str | None) -> str:
+    async def summarize_reviews(self, model_name: str) -> str:
         with logfire.span("Summarize reviews"):
             model = OpenAIChatModel(
-                model_name=cloud_model or env("DEFAULT_CLOUD_MODEL"),
+                model_name=model_name,
                 provider=OpenAIProvider(api_key=env("OPENAI_API_KEY"))
             )
             limits = UsageLimits(

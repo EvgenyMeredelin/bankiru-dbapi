@@ -137,13 +137,14 @@ async def get_reviews(
             return fastapi.Response(status_code=status.HTTP_204_NO_CONTENT)
 
         url = await handler.generate_url()
-        comment = await handler.summarize_reviews(r.cloudModel)
+        model_name = r.cloudModel or env("DEFAULT_CLOUD_MODEL")
+        comment = await handler.summarize_reviews(model_name)
 
         return Response(
             **r.model_dump(),
             filename=handler.key,
             url=url,
-            comment=comment
+            comment=f"Cloud model: {model_name}<br>{comment}"
         )
 
 
